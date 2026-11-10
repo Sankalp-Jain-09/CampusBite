@@ -1,0 +1,19 @@
+# Secrets never go into the image
+.env
+.env.*
+!.env.example
+
+# Local environments and caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+*.sqlite3
+
+# Not needed at runtime
+tests/
+requirements-dev.txt
+.git/
+.gitignore

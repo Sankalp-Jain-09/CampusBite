@@ -1,0 +1,8 @@
+# Test-only override: points the backend at the local OpenAI stub. Not part of the project.
+services:
+  backend:
+    environment:
+      OPENAI_API_KEY: sk-stub
+      OPENAI_BASE_URL: http://host.docker.internal:8099/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
