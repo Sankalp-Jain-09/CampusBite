@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
@@ -44,15 +44,21 @@ export default function Navbar() {
   const { user, isAuthenticated, logout, homePath } = useAuth();
   const { itemCount } = useCart();
   const [open, setOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('campusbite_theme') === 'dark');
   const links = LINKS[user?.role] || LINKS.guest;
   const isCustomer = user?.role === ROLES.CUSTOMER;
   const close = () => setOpen(false);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('campusbite_theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Link to={homePath} className="flex items-center gap-2" onClick={close}>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-black text-white">CB</span>
+        <Link to={homePath} className="flex shrink-0 items-center gap-2.5" onClick={close}>
+          <img src="/campusbite-logo.svg" alt="" className="h-9 w-9" />
           <span className="text-lg font-bold tracking-tight">CampusBite</span>
         </Link>
 
@@ -61,36 +67,58 @@ export default function Navbar() {
           {isCustomer && <CartLink count={itemCount} />}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
-          {isAuthenticated ? (
-            <>
-              <div className="text-right leading-tight">
-                <div className="text-sm font-medium">{user.name}</div>
-                <div className="text-xs text-gray-500">{ROLE_LABELS[user.role]}</div>
-              </div>
-              <button type="button" className="btn-secondary btn-sm" onClick={logout}>Log out</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn-ghost btn-sm">Log in</Link>
-              <Link to="/register" className="btn-primary btn-sm">Sign up</Link>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 md:hidden">
-          {isCustomer && <CartLink count={itemCount} onClick={close} />}
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
-            aria-label="Toggle menu"
-            aria-expanded={open}
-            onClick={() => setOpen((o) => !o)}
+            className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100"
+            aria-label={`Switch to ${darkMode ? 'light' : 'dark'} theme`}
+            aria-pressed={darkMode}
+            title={`Switch to ${darkMode ? 'light' : 'dark'} theme`}
+            onClick={() => setDarkMode((enabled) => !enabled)}
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {open ? <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /> : <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />}
-            </svg>
+            {darkMode ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path strokeLinecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z" />
+              </svg>
+            )}
           </button>
+
+          <div className="hidden items-center gap-3 md:flex">
+            {isAuthenticated ? (
+              <>
+                <div className="text-right leading-tight">
+                  <div className="text-sm font-medium">{user.name}</div>
+                  <div className="text-xs text-gray-500">{ROLE_LABELS[user.role]}</div>
+                </div>
+                <button type="button" className="btn-secondary btn-sm" onClick={logout}>Log out</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn-ghost btn-sm">Log in</Link>
+                <Link to="/register" className="btn-primary btn-sm">Sign up</Link>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 md:hidden">
+            {isCustomer && <CartLink count={itemCount} onClick={close} />}
+            <button
+              type="button"
+              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+              aria-label="Toggle menu"
+              aria-expanded={open}
+              onClick={() => setOpen((o) => !o)}
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {open ? <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /> : <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />}
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
