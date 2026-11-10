@@ -128,6 +128,20 @@ A full-stack restaurant ordering and delivery platform for a university campus. 
 
 **Requirements:** Docker (Docker Desktop or Docker Engine with the Compose plugin) for the backend and database, and Node.js 20 LTS (18+ works) for the frontend.
 
+On Windows, install and verify the prerequisites in PowerShell:
+
+```powershell
+docker --version
+winget install --id OpenJS.NodeJS.LTS --exact
+```
+
+After Node.js finishes installing, reopen PowerShell and verify Node.js and npm:
+
+```powershell
+node -v
+npm -v
+```
+
 ### 1. Backend + database (Docker Compose)
 
 ```bash
