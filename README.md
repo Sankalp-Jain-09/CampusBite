@@ -51,6 +51,8 @@ A full-stack restaurant ordering and delivery platform for a university campus. 
 
 ### Restaurant owner
 - **Signup:** "Partner with us" creates the owner account and the restaurant together.
+- **Restaurant profile:** edit the restaurant name, cuisine, address, phone, description, and photo from the owner dashboard.
+- **Restaurant photos:** use an image URL or upload a JPEG, PNG, or WebP image (up to 5 MB). Drag to position the crop used on restaurant listings; uploaded images are saved in persistent storage.
 - **Menu:** add, edit and delete dishes, and toggle **available/unavailable** for each one.
 - **Orders:**
   - incoming orders filtered by **status and date**
@@ -241,6 +243,7 @@ Compose builds `DATABASE_URL` for the backend automatically. `backend/.env.examp
 
 - **Engine:** PostgreSQL 16 runs in Docker Compose, with its data in the `pgdata` volume.
 - **Schema:** the tables are defined as SQLAlchemy models and versioned with **Alembic** (`backend/alembic/versions/`). Migrations run automatically when the container starts.
+- **Restaurant photos:** Docker Compose stores uploaded photos in the persistent `uploads` volume; the backend serves them from `/uploads/`. Crop positioning is stored with the restaurant profile and applied to public restaurant listings.
 - **Tables:**
   - `users`, `restaurants`, `menu_items`
   - `orders`, `order_items`, `order_status_history`
@@ -310,6 +313,7 @@ Base path: `/api/v1`. Lists are paginated with `?page=&page_size=` (max 50) and 
 | POST | `/orders/{id}/review` | customer | Rate a delivered order |
 | POST | `/orders/{id}/return` | customer | Request a return/refund (reason required) |
 | GET / PUT | `/owner/restaurant` | owner | View or update own restaurant (incl. open/closed) |
+| PUT | `/owner/restaurant/image` | owner | Upload a JPEG, PNG, or WebP restaurant photo (multipart `file`, max 5 MB) |
 | GET / POST | `/owner/menu-items` | owner | List (incl. unavailable) / add dishes |
 | PUT / DELETE | `/owner/menu-items/{id}` | owner | Update / delete (soft) a dish |
 | PATCH | `/owner/menu-items/{id}/availability` | owner | Available / unavailable |
