@@ -3,6 +3,11 @@ import { api, cleanParams, data } from './client';
 export const ownerApi = {
   restaurant: () => data(api.get('/owner/restaurant')),
   updateRestaurant: (payload) => data(api.put('/owner/restaurant', payload)),
+  uploadRestaurantImage: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return data(api.put('/owner/restaurant/image', form));
+  },
 
   menu: (params) => data(api.get('/owner/menu-items', { params: cleanParams(params) })),
   createDish: (payload) => data(api.post('/owner/menu-items', payload)),

@@ -43,6 +43,8 @@ def _to_public(row: Tuple[Restaurant, Optional[float], Optional[int]]) -> Restau
         phone=restaurant.phone,
         description=restaurant.description,
         image_url=restaurant.image_url,
+        image_crop_x=restaurant.image_crop_x,
+        image_crop_y=restaurant.image_crop_y,
         is_open=restaurant.is_open,
         avg_rating=round(float(avg_rating), 1) if avg_rating is not None else None,
         review_count=int(review_count or 0),
@@ -115,7 +117,10 @@ def get_owner_restaurant(db: Session, owner: User) -> Restaurant:
 
 def update_owner_restaurant(db: Session, owner: User, data: RestaurantUpdate) -> Restaurant:
     restaurant = get_owner_restaurant(db, owner)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    if "image_url" in changes and not any(field in changes for field in ("image_crop_x", "image_crop_y")):
+        changes.update(image_crop_x=0.5, image_crop_y=0.5)
+    for field, value in changes.items():
         setattr(restaurant, field, value)
     db.commit()
     return restaurant

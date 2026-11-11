@@ -44,7 +44,7 @@ export default function DeliveryCard({ order, onChanged }) {
           <p className="font-medium">{order.restaurant_name}</p>
           <p className="text-gray-600">{order.restaurant_address}</p>
         </div>
-        <div className="rounded-lg bg-brand-50 p-3">
+        <div className="delivery-address rounded-lg bg-brand-50 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Deliver to</p>
           <p className="font-medium">{order.customer_name}</p>
           <p className="text-gray-700">{order.delivery_address}</p>

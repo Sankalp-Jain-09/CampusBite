@@ -8,6 +8,7 @@ import Loader from '../../components/common/Loader';
 import PageHeader from '../../components/common/PageHeader';
 import OrderCard from '../../components/order/OrderCard';
 import ReminderList from '../../components/owner/ReminderList';
+import RestaurantProfileForm from '../../components/owner/RestaurantProfileForm';
 import StatsCards from '../../components/owner/StatsCards';
 import { useApi } from '../../hooks/useApi';
 import { useInterval } from '../../hooks/useInterval';
@@ -42,6 +43,16 @@ export default function OwnerDashboardPage() {
     }
   };
 
+  const saveProfile = async (payload, imageFile) => {
+    if (imageFile) {
+      const withImage = await ownerApi.uploadRestaurantImage(imageFile);
+      restaurant.setData(withImage);
+    }
+    const updated = await ownerApi.updateRestaurant(payload);
+    restaurant.setData(updated);
+    toast.success('Restaurant profile updated');
+  };
+
   if (restaurant.loading) return <Loader />;
   if (restaurant.error) return <ErrorMessage error={restaurant.error} onRetry={restaurant.refetch} />;
   const r = restaurant.data;
@@ -53,6 +64,7 @@ export default function OwnerDashboardPage() {
         subtitle={`${r.cuisine} · ${r.address}`}
         actions={(
           <>
+            <RestaurantProfileForm restaurant={r} onSave={saveProfile} />
             <span className={`badge self-center ${r.is_open ? 'bg-green-50 text-green-700 ring-green-200' : 'bg-gray-100 text-gray-600 ring-gray-200'}`}>
               {r.is_open ? 'Open' : 'Closed'}
             </span>

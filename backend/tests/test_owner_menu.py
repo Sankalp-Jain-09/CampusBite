@@ -40,6 +40,86 @@ def test_owner_updates_only_sent_fields(client, owners):
     assert body["name"] == before["name"] and body["address"] == before["address"]
 
 
+def test_owner_saves_and_publishes_restaurant_photo_crop(client, owners):
+    restaurant_id = owners["a"].restaurant.id
+    response = client.put(
+        f"{API}/owner/restaurant",
+        headers=owners["a_headers"],
+        json={
+            "image_url": "https://example.com/restaurant.jpg",
+            "image_crop_x": 0.7,
+            "image_crop_y": 0.3,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["image_crop_x"] == 0.7
+    assert response.json()["image_crop_y"] == 0.3
+    public = client.get(f"{API}/restaurants/{restaurant_id}").json()
+    assert public["image_crop_x"] == 0.7
+    assert public["image_crop_y"] == 0.3
+
+
+@pytest.mark.parametrize("field,value", [
+    ("image_crop_x", -0.1),
+    ("image_crop_y", 1.1),
+])
+def test_restaurant_photo_crop_rejects_out_of_range_values(client, owners, field, value):
+    assert client.put(
+        f"{API}/owner/restaurant",
+        headers=owners["a_headers"],
+        json={field: value},
+    ).status_code == 422
+
+
+def test_owner_uploads_restaurant_photo(client, owners, monkeypatch, tmp_path):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
+    content = b"\xff\xd8\xffrestaurant photo"
+    response = client.put(
+        f"{API}/owner/restaurant/image",
+        headers=owners["a_headers"],
+        files={"file": ("restaurant.jpg", content, "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    image_url = response.json()["image_url"]
+    assert image_url.startswith("http://testserver/uploads/restaurants/")
+    filename = image_url.rsplit("/", 1)[1]
+    assert filename.endswith(".jpg")
+    assert (tmp_path / "restaurants" / filename).read_bytes() == content
+    assert owners["a"].restaurant.image_url == image_url
+
+
+def test_restaurant_photo_upload_rejects_non_images(client, owners, monkeypatch, tmp_path):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
+    response = client.put(
+        f"{API}/owner/restaurant/image",
+        headers=owners["a_headers"],
+        files={"file": ("not-an-image.jpg", b"not an image", "image/jpeg")},
+    )
+
+    assert response.status_code == 415
+    assert list(tmp_path.rglob("*")) == []
+
+
+def test_restaurant_photo_upload_enforces_size_limit(client, owners, monkeypatch, tmp_path):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
+    response = client.put(
+        f"{API}/owner/restaurant/image",
+        headers=owners["a_headers"],
+        files={"file": ("large.jpg", b"\xff\xd8\xff" + b"x" * (5 * 1024 * 1024), "image/jpeg")},
+    )
+
+    assert response.status_code == 413
+    assert list(tmp_path.rglob("*")) == []
+
+
 @pytest.mark.parametrize(
     "payload",
     [{"name": None}, {"phone": "12"}, {"image_url": "not-a-url"}, {"owner_id": 999}, {"name": "X"}],

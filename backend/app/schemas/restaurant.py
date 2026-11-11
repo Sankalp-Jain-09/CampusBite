@@ -28,11 +28,13 @@ class RestaurantUpdate(BaseModel):
     phone: Optional[Phone] = None
     description: Optional[Description] = None   # null clears it
     image_url: Optional[ImageUrl] = None        # null clears it
+    image_crop_x: Optional[float] = Field(default=None, ge=0, le=1)
+    image_crop_y: Optional[float] = Field(default=None, ge=0, le=1)
     is_open: Optional[bool] = None
 
     @model_validator(mode="after")
     def _required_fields_not_null(self):
-        for field in ("name", "cuisine", "address", "phone", "is_open"):
+        for field in ("name", "cuisine", "address", "phone", "image_crop_x", "image_crop_y", "is_open"):
             if field in self.model_fields_set and getattr(self, field) is None:
                 raise ValueError(f"{field} cannot be null")
         return self
@@ -51,6 +53,8 @@ class RestaurantOut(BaseModel):
     phone: str
     description: Optional[str] = None
     image_url: Optional[str] = None
+    image_crop_x: float = 0.5
+    image_crop_y: float = 0.5
     is_open: bool
 
 
@@ -64,6 +68,8 @@ class RestaurantPublic(BaseModel):
     phone: str
     description: Optional[str] = None
     image_url: Optional[str] = None
+    image_crop_x: float = 0.5
+    image_crop_y: float = 0.5
     is_open: bool
     avg_rating: Optional[float] = Field(default=None, description="Average review rating (1 decimal); null if no reviews")
     review_count: int = 0

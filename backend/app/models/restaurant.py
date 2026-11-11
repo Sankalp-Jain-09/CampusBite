@@ -25,6 +25,8 @@ class Restaurant(TimestampMixin, Base):
     address: Mapped[str] = mapped_column(Text, nullable=False)
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(500))
+    image_crop_x: Mapped[float] = mapped_column(default=0.5, nullable=False)
+    image_crop_y: Mapped[float] = mapped_column(default=0.5, nullable=False)
     is_open: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     owner: Mapped["User"] = relationship(back_populates="restaurant")

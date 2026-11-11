@@ -15,7 +15,13 @@ export default function RestaurantCard({ restaurant }) {
     <Link to={`/restaurants/${restaurant.id}`} className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
       <div className={`relative flex h-36 items-center overflow-hidden justify-center bg-gradient-to-br ${gradient}`}>
         {restaurant.image_url && !imageFailed ? (
-          <img src={restaurant.image_url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+          <img
+            src={restaurant.image_url}
+            alt=""
+            className="h-full w-full object-cover transition duration-300"
+            style={{
+              objectPosition: `${(restaurant.image_crop_x ?? 0.5) * 100}% ${(restaurant.image_crop_y ?? 0.5) * 100}%`,
+            }}
             loading="lazy" onError={() => setImageFailed(true)} />
         ) : (
           <span className="text-4xl font-black text-white/90 drop-shadow">{restaurant.name.slice(0, 1)}</span>

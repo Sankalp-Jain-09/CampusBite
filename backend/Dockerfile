@@ -14,6 +14,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 RUN useradd --create-home --uid 1000 appuser \
+    && mkdir -p /app/uploads \
     && chmod +x scripts/entrypoint.sh \
     && chown -R appuser:appuser /app
 USER appuser

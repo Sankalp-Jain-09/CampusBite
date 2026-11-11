@@ -1,12 +1,14 @@
 from datetime import date
 from typing import List, Optional
+from uuid import uuid4
 
 from typing_extensions import Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, Response, UploadFile, status
 from sqlalchemy.orm import sessionmaker
 
 from app.api.deps import CurrentOwner, DbSession, owner_required
+from app.core.config import settings
 from app.db.session import get_session_factory
 from app.schemas.common import Page, PaginationParams
 from app.models import OrderStatus, ReturnStatus
@@ -46,6 +48,37 @@ def get_my_restaurant(owner: CurrentOwner, db: DbSession):
 def update_my_restaurant(data: RestaurantUpdate, owner: CurrentOwner, db: DbSession):
     """Only the fields sent are changed (e.g. `{"is_open": false}` to close for the day)."""
     return restaurant_service.update_owner_restaurant(db, owner, data)
+
+
+@router.put("/restaurant/image", response_model=RestaurantOut, summary="Upload my restaurant photo")
+async def upload_restaurant_image(
+    owner: CurrentOwner,
+    db: DbSession,
+    request: Request,
+    file: UploadFile = File(...),
+):
+    content = await file.read(5 * 1024 * 1024 + 1)
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image must be 5 MB or smaller")
+
+    image_types = (
+        (b"\x89PNG\r\n\x1a\n", ".png"),
+        (b"\xff\xd8\xff", ".jpg"),
+    )
+    extension = next((ext for signature, ext in image_types if content.startswith(signature)), None)
+    if extension is None and len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP":
+        extension = ".webp"
+    if extension is None:
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                            detail="Upload a valid JPEG, PNG, or WebP image")
+
+    restaurant_service.get_owner_restaurant(db, owner)
+    image_dir = settings.UPLOAD_DIR / "restaurants"
+    image_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid4().hex}{extension}"
+    (image_dir / filename).write_bytes(content)
+    image_url = f"{str(request.base_url).rstrip('/')}/uploads/restaurants/{filename}"
+    return restaurant_service.update_owner_restaurant(db, owner, RestaurantUpdate(image_url=image_url))
 
 
 # ---------------- Menu management ----------------

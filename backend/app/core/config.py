@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     CORS_ORIGINS: str = "http://localhost:5173"
     SEED_DEMO_DATA: bool = False
+    UPLOAD_DIR: Path = Path(__file__).resolve().parents[2] / "uploads"
 
     # Database
     DATABASE_URL: str
